@@ -1,3 +1,6 @@
 [submodule "libobjc2"]
 	path = libobjc2
 	url = https://github.com/crontab/libobjc2.git
+[submodule "gnustep-base"]
+	path = gnustep-base
+	url = https://github.com/crontab/gnustep-base.git
