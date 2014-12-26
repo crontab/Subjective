@@ -1,0 +1,3 @@
+[submodule "libobjc2"]
+	path = libobjc2
+	url = https://github.com/crontab/libobjc2.git
