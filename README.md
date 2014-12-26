@@ -5,7 +5,7 @@ Subjective is a Windows/MinGW32 port of the Objective-C 2.0 run-time environment
 
 This project is covered by the GNU Public License which you can read in the file COPYING. Submodules are included with their respective (compatible) licenses.
 
-The submodules have been slightly modified and reduced to the minimum required for the Windows build, i.e. the CMake and ./configure build systems are replaced with plain MinGW Makefile's.
+The submodules have been slightly modified and reduced to the minimum required for the Windows build; among other things, the CMake, ./configure and the (somewhat overengineered) GNUstep Makefiles build systems have been replaced with plain Makefiles that simply work under MinGW32 and have minimal dependencies.
 
 Instructions on building the modules will be posted here soon. Additional libraries required for deployment of your app will be provided separately in binary form, outside of this repository.
 

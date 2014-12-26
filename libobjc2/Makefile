@@ -1,153 +1,98 @@
-.POSIX:
 
-.SUFFIXES: .cc .c .m .o .S
+.SUFFIXES:	.c .cxx .cc .cpp .m .mm .o
 
-MAJOR_VERSION = 4
-MINOR_VERSION = 6
-SUBMINOR_VERSION = 0
-VERSION ?= $(MAJOR_VERSION).$(MINOR_VERSION).$(SUBMINOR_VERSION)
-
-LIBOBJCLIBNAME=objc
-LIBOBJC=libobjc
-LIBOBJCXX=libobjcxx
-
-INSTALL ?= install
-SILENT ?= @
-
-CFLAGS += -std=gnu99 -fPIC -fexceptions
-#CFLAGS += -Wno-deprecated-objc-isa-usage
-CXXFLAGS += -fPIC -fexceptions
-CPPFLAGS += -DTYPE_DEPENDENT_DISPATCH -DGNUSTEP
-CPPFLAGS += -D__OBJC_RUNTIME_INTERNAL__=1 -D_XOPEN_SOURCE=500 -D__BSD_VISIBLE=1 -D_BSD_SOURCE=1
-
-ASMFLAGS += `if $(CC) -v 2>&1| grep -q 'clang' ; then echo -no-integrated-as ; fi`
-
-THE_LD=`if [ "$(LD)" = "" ]; then echo "ld"; else echo "$(LD)"; fi` 
-
-STRIP=`if [ "$(strip)" = "yes" ] ; then echo -s ; fi`
-
-# Suppress warnings about incorrect selectors
-CPPFLAGS += -DNO_SELECTOR_MISMATCH_WARNINGS
-# Some helpful flags for debugging.
-#CPPFLAGS += -g -O0 -fno-inline
-CPPFLAGS += -O3
-
-PREFIX?= /usr/local
-LIB_DIR= ${PREFIX}/lib
-HEADER_DIR= ${PREFIX}/include
-
-OBJCXX_OBJECTS = \
-	objcxx_eh.o
-
-OBJECTS = \
-	NSBlocks.o\
-	Protocol2.o\
-	abi_version.o\
-	alias_table.o\
-	arc.o\
-	associate.o\
-	blocks_runtime.o\
-	block_to_imp.o\
-	block_trampolines.o\
-	objc_msgSend.o\
-	caps.o\
-	category_loader.o\
-	class_table.o\
-	dtable.o\
-	eh_personality.o\
-	encoding2.o\
-	gc_none.o\
-	hash_table.o\
-	hooks.o\
-	ivar.o\
-	legacy_malloc.o\
-	loader.o\
-	mutation.o\
-	properties.o\
-	protocol.o\
-	runtime.o\
-	sarray2.o\
-	selector_table.o\
-	sendmsg2.o\
-	statics_loader.o\
-	toydispatch.o
+DEPS = Makefile
 
 
-all: warning $(LIBOBJC).a $(LIBOBJCXX).so.$(VERSION)
-	@echo '********************************************************************************'
-	@echo '*********************************** WARNING ************************************'
-	@echo '********************************************************************************'
-	@echo The Makfile build is deprecated, and should not be used.
-	@echo Please use cmake.  The recommended procedure is:
-	@echo $ mkdir Build
-	@echo $ cd Build
-	@echo cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-	@echo "make && sudo -E make install"
+### Compilers/Tools
 
-warning:
-	@echo '********************************************************************************'
-	@echo '*********************************** WARNING ************************************'
-	@echo '********************************************************************************'
-	@echo The Makfile build is deprecated, and should not be used.
-	@echo Please use cmake.  The recommended procedure is:
-	@echo $ mkdir Build
-	@echo $ cd Build
-	@echo cmake .. -DCMAKE_C_COMPILER=clang -DCMAKE_CXX_COMPILER=clang++
-	@echo "make && sudo -E make install"
+CC = clang
+CXX = clang++
+LD = clang++
+AR = ar cr
 
-$(LIBOBJCXX).so.$(VERSION): $(LIBOBJC).so.$(VERSION) $(OBJCXX_OBJECTS)
-	$(SILENT)echo Linking shared Objective-C++ runtime library...
-	$(SILENT)$(CXX) -shared \
-            -Wl,-soname=$(LIBOBJCXX).so.$(MAJOR_VERSION) $(LDFLAGS) \
-            -o $@ $(OBJCXX_OBJECTS)
 
-$(LIBOBJC).so.$(VERSION): $(OBJECTS)
-	$(SILENT)echo Linking shared Objective-C runtime library...
-	$(SILENT)$(CC) -shared -rdynamic \
-            -Wl,-soname=$(LIBOBJC).so.$(MAJOR_VERSION) $(LDFLAGS) \
-            -o $@ $(OBJECTS)
+### Compiler/Tools options
 
-$(LIBOBJC).a: $(OBJECTS)
-	$(SILENT)echo Linking static Objective-C runtime library...
-	$(SILENT)$(THE_LD) -r -s -o $@ $(OBJECTS)
+COPT = -Wno-deprecated-objc-isa-usage -Wno-objc-root-class
+CXXOPT =
+CDEFS = -DGC_DEBUG -DGNUSTEP -DNO_LEGACY -DTYPE_DEPENDENT_DISPATCH \
+	-D_BSD_SOURCE=1 -D_XOPEN_SOURCE=700 -D__BSD_VISIBLE=1 \
+	-D__OBJC_RUNTIME_INTERNAL__=1 -Dobjc_EXPORTS
+CINCDIRS = -I./
+AROPT =
 
-.cc.o: Makefile
-	$(SILENT)echo Compiling `basename $<`...
-	$(SILENT)$(CXX) $(CPPFLAGS) $(CXXFLAGS) -c $< -o $@
 
-.c.o: Makefile
-	$(SILENT)echo Compiling `basename $<`...
-	$(SILENT)$(CC) $(CPPFLAGS) $(CFLAGS) -c $< -o $@
+### Product/Build dirs
 
-.m.o: Makefile
-	$(SILENT)echo Compiling `basename $<`...
-	$(SILENT)$(CC) $(CPPFLAGS) $(CFLAGS) -fobjc-exceptions -c $< -o $@
+PRODUCT_NAME = libobjc
+BUILD_DIR = build
+OBJ_DIR = $(BUILD_DIR)/obj
+PRODUCT = $(BUILD_DIR)/$(PRODUCT_NAME).a
 
-.S.o: Makefile
-	$(SILENT)echo Assembling `basename $<`...
-	$(SILENT)$(CC) $(CPPFLAGS) $(ASMFLAGS) -c $< -o $@
 
-$(INSTALL): all
-	$(SILENT)echo Installing libraries...
-	$(SILENT)install -d $(LIB_DIR)
-	$(SILENT)install -m 444 $(STRIP) $(LIBOBJC).so.$(VERSION) $(LIB_DIR)
-	$(SILENT)install -m 444 $(STRIP) $(LIBOBJCXX).so.$(VERSION) $(LIB_DIR)
-	$(SILENT)install -m 444 $(STRIP) $(LIBOBJC).a $(LIB_DIR)
-	$(SILENT)echo Creating symbolic links...
-	$(SILENT)ln -sf $(LIBOBJC).so.$(VERSION) $(LIB_DIR)/$(LIBOBJC).so
-	$(SILENT)ln -sf $(LIBOBJC).so.$(VERSION) $(LIB_DIR)/$(LIBOBJC).so.$(MAJOR_VERSION)
-	$(SILENT)ln -sf $(LIBOBJC).so.$(VERSION) $(LIB_DIR)/$(LIBOBJC).so.$(MAJOR_VERSION).$(MINOR_VERSION)
-	$(SILENT)ln -sf $(LIBOBJCXX).so.$(VERSION) $(LIB_DIR)/$(LIBOBJCXX).so
-	$(SILENT)ln -sf $(LIBOBJCXX).so.$(VERSION) $(LIB_DIR)/$(LIBOBJCXX).so.$(MAJOR_VERSION)
-	$(SILENT)ln -sf $(LIBOBJCXX).so.$(VERSION) $(LIB_DIR)/$(LIBOBJCXX).so.$(MAJOR_VERSION).$(MINOR_VERSION)
-	$(SILENT)echo Installing headers...
-	$(SILENT)install -d $(HEADER_DIR)/objc
-	$(SILENT)install -m 444 objc/*.h $(HEADER_DIR)/objc
+### Sources
 
+OBJS = \
+	$(OBJ_DIR)/abi_version.c.o \
+	$(OBJ_DIR)/alias_table.c.o \
+	$(OBJ_DIR)/block_to_imp.c.o \
+	$(OBJ_DIR)/caps.c.o \
+	$(OBJ_DIR)/category_loader.c.o \
+	$(OBJ_DIR)/class_table.c.o \
+	$(OBJ_DIR)/dtable.c.o \
+	$(OBJ_DIR)/eh_personality.c.o \
+	$(OBJ_DIR)/encoding2.c.o \
+	$(OBJ_DIR)/hash_table.c.o \
+	$(OBJ_DIR)/hooks.c.o \
+	$(OBJ_DIR)/ivar.c.o \
+	$(OBJ_DIR)/legacy_malloc.c.o \
+	$(OBJ_DIR)/loader.c.o \
+	$(OBJ_DIR)/mutation.m.o \
+	$(OBJ_DIR)/protocol.c.o \
+	$(OBJ_DIR)/runtime.c.o \
+	$(OBJ_DIR)/sarray2.c.o \
+	$(OBJ_DIR)/selector_table.c.o \
+	$(OBJ_DIR)/sendmsg2.c.o \
+	$(OBJ_DIR)/statics_loader.c.o \
+	$(OBJ_DIR)/toydispatch.c.o \
+	$(OBJ_DIR)/block_trampolines.S.o \
+	$(OBJ_DIR)/objc_msgSend.S.o \
+	$(OBJ_DIR)/NSBlocks.m.o \
+	$(OBJ_DIR)/Protocol2.m.o \
+	$(OBJ_DIR)/arc.m.o \
+	$(OBJ_DIR)/associate.m.o \
+	$(OBJ_DIR)/blocks_runtime.m.o \
+	$(OBJ_DIR)/properties.m.o \
+	$(OBJ_DIR)/gc_none.c.o
+
+
+### Build Rules
+
+all: $(BUILD_DIR) $(OBJ_DIR) $(PRODUCT)
+
+$(BUILD_DIR): $(DEPS)
+	@mkdir -p $(BUILD_DIR)
+
+$(OBJ_DIR): $(DEPS)
+	@mkdir -p $(OBJ_DIR)
+
+$(PRODUCT): $(OBJS) $(DEPS)
+	$(AR) $(PRODUCT) $(AROPT) $(OBJS)
+
+$(OBJ_DIR)/%.c.o: %.c $(DEPS)
+	$(CC) $(COPT) $(CDEFS) $(CINCDIRS) -c $< -o $@
+
+$(OBJ_DIR)/%.m.o: %.m $(DEPS)
+	$(CC) $(COPT) $(CDEFS) $(CINCDIRS) -c $< -o $@
+
+$(OBJ_DIR)/%.S.o: %.S $(DEPS)
+	$(CC) $(COPT) $(CDEFS) $(CINCDIRS) -c $< -o $@
+
+$(OBJ_DIR)/%.mm.o: %.mm $(DEPS)
+	$(CXX) $(COPT) $(CXXOPT) $(CDEFS) $(CINCDIRS) -c $< -o $@
+
+
+### Clean
 clean:
-	$(SILENT)echo Cleaning...
-	$(SILENT)rm -f $(OBJECTS)
-	$(SILENT)rm -f $(OBJCXX_OBJECTS)
-	$(SILENT)rm -f $(LIBOBJC).so.$(VERSION)
-	$(SILENT)rm -f $(LIBOBJCXX).so.$(VERSION)
-	$(SILENT)rm -f $(LIBOBJC).a
+	@rm -f $(PRODUCT) $(OBJ_DIR)/*
