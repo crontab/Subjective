@@ -1,0 +1,85 @@
+
+* libobjc2: Linkage problems: __cxa_* functions force c++ libs to be
+  always linked; somehow __attribute__((weak)) doesn't work as expected
+  (symbols never resolved at run time).
+
+* Loading the DLLs is horrendously slow at least under a VM; as a result
+  a trivial program takes about a second to load.
+
+* libobjc2: failing test PropertyIntrospectionTest2, possibly a bug in
+  the test itself
+
+* gnustep-base: failed tests:
+
+  Functions/NSZone.m
+  GSXML/basic.m
+  KVC/basic.m
+  KVC/mutable.m
+  KVC/nil.m
+  NSArchiver/create.m
+  NSArchiver/stringEncoding.m
+  NSArray/basic.m
+  NSArray/blocks.m
+  NSArray/create.m
+  NSArray/general.m
+  NSAutoreleasePool/autorelease_eh.m
+  NSBlock/blockassign.m
+  NSBundle/resources.m
+  NSCalendar/basic.m
+  NSCalendar/create.m
+  NSCalendar/features-10-7.m
+  NSData/general.m
+  NSDateFormatter/general.m
+  NSDictionary/basic.m
+  NSDictionary/blocks.m
+  NSDictionary/create.m
+  NSException/basic.m
+  NSException/throwstr.m
+  NSFileHandle/singleton.m
+  NSFileManager/general.m
+  NSHashTable/create.m
+  NSInvocationOperation/basic.m
+  NSJSONSerialization/json.m
+  NSJSONSerialization/tests00.m
+  NSKeyedArchiver/basic.m
+  NSKeyedArchiver/create.m
+  NSLocale/basic.m
+  NSLocale/create.m
+  NSLocale/general.m
+  NSLock/doubleLocking.m
+  NSMapTable/create.m
+  NSMutableArray/create.m
+  NSMutableArray/general.m
+  NSMutableData/general.m
+  NSMutableIndexSet/blocks.m
+  NSNumber/basic.m
+  NSNumberFormatter/basic10_4.m
+  NSObject/initialize.m
+  NSOperation/basic.m
+  NSOperation/threads.m
+  NSProcessInfo/general.m
+  NSProxy/basic.m
+  NSProxy/test01.m
+  NSStream/memandfile.m
+  NSStream/socket.m
+  NSString/basic.m
+  NSString/locale.m
+  NSString/regex.m
+  NSString/test00.m
+  NSString/tilde.m
+  NSTask/general.m
+  NSTask/launch.m
+  NSTask/notify.m
+  NSTask/zombie.m
+  NSTimeZone/use.m
+  NSUndoManager/NSUndoManager_basic.m
+  NSURL/basic.m
+  NSURLConnection/basic.m
+  NSURLConnection/test01.m
+  NSURLConnection/test02.m
+  NSURLConnection/test03.m
+  NSURLConnection/test04.m
+  NSURLConnection/test05.m
+  NSURLHandle/basic.m
+  NSURLHandle/test01.m
+  NSURLProtocol/basic.m
